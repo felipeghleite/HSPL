@@ -21,6 +21,6 @@ typedef struct protocolContextTag{
 void HSPL_Init();
 unsigned char HSPL_Protocol_prepareToSend(HSPLContext *context, char *payload);
 int HSPL_calculateCRC(HSPLContext *context);
-unsigned char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer);
+char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer);
 
 #endif /* INC_HSPL_H_ */

@@ -21,7 +21,7 @@ unsigned char HSPL_Protocol_prepareToSend(HSPLContext *context, char *payload){
 	context->b_startByte = 0x55;
 	context->b_sizeByte = strlen(payload);
 	strcpy(context->s_payloadString, payload);
-	HSPL_calculateCRC(context);
+	context->i_crc = HSPL_calculateCRC(context);
 
 	return 0;
 
@@ -41,18 +41,25 @@ int HSPL_calculateCRC(HSPLContext *context){
 		CRC ^= (int)*temp++;
 	}
 
-	context->i_crc = CRC;
+	//context->i_crc = CRC;
+
+	return CRC;
 }
 
-unsigned char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer){
+char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer){
 
-	int index, size;
+	int checkCRC;
 
 	context->b_startByte = msgBuffer++[0];
 	context->b_sizeByte = msgBuffer++[0];
 	strcpy(context->s_payloadString, msgBuffer);
 	msgBuffer += sizeof(context->s_payloadString) + 2 ; //TODO: +2 porque a memória é alinhada em 32bits. (struct é feita com char+char+char[256]+int = 262 bytes q dá 32,75 int's. ou seja, tem que caber em 33 ints
 	context->i_crc = *(int*)msgBuffer;
+
+	checkCRC = HSPL_calculateCRC(context);
+	if(checkCRC != context->i_crc)
+		return -1;
+	else return 0;
 }
 
 

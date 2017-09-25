@@ -15,20 +15,23 @@
 #define INC_HSPL_H_
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <HSPL_errors.h>
 #include <ringbuf.h>
 
+#define startPreAmbleSize 3
+
 typedef struct protocolContextTag{
-	unsigned char b_startByte;
-	unsigned char b_sizeByte;
-	char s_payloadString[256];
-	int i_crc;
+	uint8_t b_startPreAmble[startPreAmbleSize];
+	uint8_t b_sizeByte;
+	uint8_t s_payloadString[256];
+	uint32_t i_crc;
 }HSPLContext;
 
 char HSPL_Init();
 unsigned char HSPL_Protocol_prepareToSend(HSPLContext *context, char *payload);
 int HSPL_calculateCRC(HSPLContext *context);
-char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer);
+char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size);
 
 #endif /* INC_HSPL_H_ */

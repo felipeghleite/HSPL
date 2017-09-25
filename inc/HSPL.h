@@ -19,6 +19,7 @@
 #include <string.h>
 #include <HSPL_errors.h>
 #include <ringbuf.h>
+#include <memmem.h>
 
 #define startPreAmbleSize 3
 
@@ -29,7 +30,7 @@ typedef struct protocolContextTag{
 	uint32_t i_crc;
 }HSPLContext;
 
-char HSPL_Init();
+char HSPL_Init(HSPLContext *context);
 unsigned char HSPL_Protocol_prepareToSend(HSPLContext *context, char *payload);
 int HSPL_calculateCRC(HSPLContext *context);
 char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size);

@@ -68,18 +68,26 @@ unsigned char HSPL_Protocol_prepareToSend(HSPLContext *context, char *payload){
  */
 int HSPL_calculateCRC(HSPLContext *context){
 
-	int CRC = 0xFFFF;
-	int *temp;
+	int CRC = 0xFFFFFFFF;
+	char *temp;
 	temp = context;
-	int size = context->b_sizeByte; // + 2;
-	size = size/4;
+	int size = context->b_sizeByte + 4; // + 2;
+//	size = size/4;
 
 	if(context->b_sizeByte == 0){
 		return HSPL_PAYLOAD_SIZE_ERROR; //error
 	}
 
-	while(size--){
-		CRC ^= (int)*temp++;
+	while(size){
+		if(size > 3){
+		CRC ^= ( (*temp & 0xFF) << (8 * 3) ) | ( (*( temp + 1 ) & 0xFF) << (8 * 2) ) | ( (*( temp + 2 ) & 0xFF) << (8 * 1) ) | ( (*( temp + 3 ) & 0xFF) << (8 * 0) );
+		temp += 4;
+		size -= 4;
+		}
+		else{
+		CRC ^= (*temp++ & 0xFF);
+		size--;
+		}
 	}
 
 	//context->i_crc = CRC;
@@ -100,6 +108,7 @@ int HSPL_calculateCRC(HSPLContext *context){
 char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size){
 
 	int checkCRC;
+	uint8_t index;
 	uint8_t preamble[3] = {0x55, 0x55, 0x55};
 	uint8_t *last_match = NULL;
 
@@ -119,9 +128,14 @@ char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size){
 
 	strcpy(context->s_payloadString, msgBuffer); // copy the string payload.
 
-	msgBuffer += sizeof(context->s_payloadString); // move the pointer to the crc position.
-//	msgBuffer += context->b_sizeByte; // move the pointer to the crc position.
-	context->i_crc = *(int*)msgBuffer; // copy the CRC.
+	//	msgBuffer += sizeof(context->s_payloadString); // move the pointer to the crc position.
+	msgBuffer += context->b_sizeByte; // move the pointer to the crc position.
+
+	context->i_crc = 0;
+
+	for(index = 0; index < 4; index++){
+		context->i_crc |= ( msgBuffer++[0] & 0xFF ) << ( 3 - index ) * 8 ; // copy the CRC.
+	}
 
 	checkCRC = HSPL_calculateCRC(context); // calculate the CRC of the context copied from the buffer passed as argument.
 

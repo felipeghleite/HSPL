@@ -111,7 +111,7 @@ char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size){
 	uint8_t index;
 	uint8_t preamble[3] = {0x55, 0x55, 0x55};
 	uint8_t *last_match = NULL;
-
+	char *tempPtr = msgBuffer;
 	while(1){
 		char *p = memmem(msgBuffer, size, preamble, 3);
 		if (!p) break;
@@ -138,6 +138,8 @@ char HSPL_Protocol_Decode(HSPLContext *context, char *msgBuffer, int size){
 	}
 
 	checkCRC = HSPL_calculateCRC(context); // calculate the CRC of the context copied from the buffer passed as argument.
+
+	memset(tempPtr, 0, size);
 
 	if(checkCRC != context->i_crc)
 		return HSPL_DECODE_ERROR;
